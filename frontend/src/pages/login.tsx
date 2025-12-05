@@ -1,75 +1,134 @@
+// src/pages/login.tsx
 "use client";
 
-import { FormEvent, useState } from "react";
+import React, { FormEvent, useState } from "react";
+import { Mail, Eye, EyeOff, Lock } from "lucide-react";
 import { useAuthContext } from "../context/AuthContext";
 
-export default function LoginPage() {
+const LoginPage: React.FC = () => {
   const { login } = useAuthContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
+    setErrors("");
     setLoading(true);
+
     try {
-      await login(email, password);
-    } catch (err: any) {
-      setError(err?.response?.data?.detail ?? "Erro ao fazer login");
-    } finally {
+      await login(email, password); // AuthContext cuida de token + redirect
+    } catch (err) {
+      console.error("[LOGIN] Erro:", err);
+      setErrors("E-mail e/ou senha incorreto(s).");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 space-y-6">
-        <div className="flex items-center gap-3 justify-center">
-          <div className="w-10 h-10 rounded-xl bg-sky-400 flex items-center justify-center font-bold text-slate-900">
-            Q
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-sky-50 px-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+        {/* Cabeçalho / logo */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="h-12 w-12 rounded-full bg-sky-500 flex items-center justify-center mb-3">
+            <span className="text-white font-semibold text-xl">Q</span>
           </div>
-          <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">Quali Tech</p>
-            <p className="text-lg font-semibold text-slate-900">Finance Pessoal</p>
-          </div>
+          <h1 className="text-xl font-semibold text-slate-900">
+            Finance Pessoal
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Faça login para acessar seu painel financeiro.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
+          {/* E-mail */}
           <div>
-            <label className="block text-sm text-slate-700 mb-1">E-mail</label>
-            <input
-              type="email"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              E-mail
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Mail className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={`block w-full pl-10 pr-3 py-2 text-sm rounded-md border ${
+                  errors ? "border-red-400" : "border-slate-300"
+                } bg-white text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500`}
+                placeholder="seuemail@exemplo.com"
+              />
+            </div>
           </div>
 
+          {/* Senha */}
           <div>
-            <label className="block text-sm text-slate-700 mb-1">Senha</label>
-            <input
-              type="password"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              Senha
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Lock className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`block w-full pl-10 pr-10 py-2 text-sm rounded-md border ${
+                  errors ? "border-red-400" : "border-slate-300"
+                } bg-white text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500`}
+                placeholder="Digite sua senha"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-500"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+            </div>
+            {errors && (
+              <p className="mt-1 text-xs text-red-500">{errors}</p>
+            )}
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
-
+          {/* Botão */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium py-2.5 transition disabled:opacity-60"
+            className="mt-2 w-full inline-flex items-center justify-center gap-2 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-sm font-medium py-2.5 shadow-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? "Entrando..." : "Entrar"}
           </button>
+
+          {/* Rodapé opcional */}
+          <p className="mt-3 text-[11px] text-center text-slate-400">
+            Em breve: reset de senha e outras opções de acesso.
+          </p>
         </form>
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

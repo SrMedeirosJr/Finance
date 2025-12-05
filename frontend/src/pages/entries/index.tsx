@@ -1,3 +1,4 @@
+// src/pages/entries/index.tsx
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
@@ -43,23 +44,23 @@ export default function EntriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    await api.delete(`/entries/${id}`);
+    await api.delete(`/entries/${id}/`);
     await loadEntries();
   };
 
   return (
     <FinanceLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <header className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-slate-900">Entradas</h1>
             <p className="text-sm text-slate-500">
-              Cadastre e acompanhe todas as receitas.
+              Cadastre e acompanhe suas entradas de dinheiro.
             </p>
           </div>
-        </div>
+        </header>
 
-        {/* Formulário rápido */}
+        {/* Formulário */}
         <form
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl border border-slate-200 px-4 py-4 grid grid-cols-1 md:grid-cols-4 gap-3 items-end"
@@ -67,6 +68,7 @@ export default function EntriesPage() {
           <div>
             <label className="block text-xs text-slate-500 mb-1">Descrição</label>
             <input
+              type="text"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-400"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -94,43 +96,50 @@ export default function EntriesPage() {
               required
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium py-2.5 px-4 transition disabled:opacity-60"
-          >
-            {loading ? "Salvando..." : "Adicionar"}
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium py-2.5 px-4 transition disabled:opacity-60"
+            >
+              {loading ? "Salvando..." : "Adicionar entrada"}
+            </button>
+          </div>
         </form>
 
-        {/* Tabela simples */}
+        {/* Tabela */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-xs text-slate-500">
+            <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="text-left px-4 py-2">Descrição</th>
-                <th className="text-right px-4 py-2">Valor</th>
-                <th className="text-center px-4 py-2">Data</th>
-                <th className="text-center px-4 py-2">Ações</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">
+                  Descrição
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">
+                  Valor
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-slate-500">
+                  Data
+                </th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-slate-500">
+                  Ações
+                </th>
               </tr>
             </thead>
             <tbody>
-              {items.map((e) => (
-                <tr key={e.id} className="border-t border-slate-100">
-                  <td className="px-4 py-2">{e.name}</td>
-                  <td className="px-4 py-2 text-right">
-                    {e.value.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
+              {items.map((item) => (
+                <tr key={item.id} className="border-b border-slate-100">
+                  <td className="px-4 py-3">{item.name}</td>
+                  <td className="px-4 py-3">
+                    R$ {item.value.toFixed(2).replace(".", ",")}
                   </td>
-                  <td className="px-4 py-2 text-center">
-                    {new Date(e.date).toLocaleDateString("pt-BR")}
+                  <td className="px-4 py-3">
+                    {new Date(item.date).toLocaleDateString("pt-BR")}
                   </td>
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-4 py-3 text-right">
                     <button
-                      onClick={() => handleDelete(e.id)}
-                      className="text-xs text-red-500 hover:underline"
+                      onClick={() => handleDelete(item.id)}
+                      className="text-xs text-red-500 hover:text-red-600"
                     >
                       Excluir
                     </button>

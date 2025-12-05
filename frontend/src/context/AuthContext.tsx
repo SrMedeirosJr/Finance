@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -19,13 +20,17 @@ type AuthContextData = {
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
+const TOKEN_KEY = "access_token";
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Carrega usuário se já tiver token salvo
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
 
     if (!token) {
       setLoading(false);
@@ -34,27 +39,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     api
       .get<User>("/auth/me")
-      .then((res) => setUser(res.data))
+      .then((res) => {
+        setUser(res.data);
+      })
       .catch(() => {
-        localStorage.removeItem("access_token");
+        localStorage.removeItem(TOKEN_KEY);
       })
       .finally(() => setLoading(false));
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post<{ access_token: string }>("/auth/login", {
-      email,
-      password,
-    });
+    try {
+      const response = await api.post("/auth/login", {
+        email,
+        password,
+      });
 
-    localStorage.setItem("access_token", data.access_token);
-    const me = await api.get<User>("/auth/me");
-    setUser(me.data);
-    router.push("/main");
+      const accessToken = response.data.access_token;
+
+      if (!accessToken) {
+        throw new Error("Token inválido");
+      }
+
+      // salva token
+      localStorage.setItem(TOKEN_KEY, accessToken);
+
+      // (opcional) garante que esse token já entre no axios
+      api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+      // busca dados do usuário
+      const me = await api.get<User>("/auth/me");
+      setUser(me.data);
+      localStorage.setItem("user", JSON.stringify(me.data));
+
+      router.push("/main");
+    } catch (error) {
+      console.error("Erro no login:", error);
+      throw error; // tela de login trata a mensagem
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem("access_token");
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("user");
     setUser(null);
     router.push("/login");
   };

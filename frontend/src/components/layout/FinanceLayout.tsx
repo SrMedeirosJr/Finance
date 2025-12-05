@@ -32,9 +32,6 @@ export default function FinanceLayout({ children }: Props) {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col">
         <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-800">
-          <div className="w-9 h-9 rounded-xl bg-sky-400 flex items-center justify-center font-bold text-slate-900">
-            Q
-          </div>
           <div>
             <p className="text-xs text-slate-400 uppercase tracking-wide">Quali Tech</p>
             <p className="text-sm font-semibold">Finance Pessoal</p>
