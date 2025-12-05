@@ -1,0 +1,28 @@
+services:
+  db:
+    image: postgres:15
+    container_name: finance-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=financepersonal
+    ports:
+      - "5435:5432"
+    volumes:
+      - financepersonal_postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: finance-backend
+    env_file:
+      - ./backend/.env        # se você estiver usando .env no backend
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app        # 🔴 ESSENCIAL: mapeia sua pasta backend -> /app
+    ports:
+      - "8005:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  financepersonal_postgres_data:
