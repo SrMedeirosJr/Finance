@@ -45,3 +45,9 @@ export type DashboardSummary = {
   };
   savings_month: number;
 };
+
+export type CategorySummary = {
+  category: string;
+  total: number;
+};
+
