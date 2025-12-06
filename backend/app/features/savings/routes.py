@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_current_user
@@ -23,13 +23,13 @@ def list_savings(
     return savings
 
 
-@router.post("/", response_model=SavingOut)
+@router.post("/", response_model=SavingOut, status_code=status.HTTP_201_CREATED)
 def create_saving(
-    data: SavingCreate,
+    saving_in: SavingCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    saving = Saving(**data.model_dump(), user_id=current_user.id)
+    saving = Saving(**saving_in.model_dump(), user_id=current_user.id)
     db.add(saving)
     db.commit()
     db.refresh(saving)

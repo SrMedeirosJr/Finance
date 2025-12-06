@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db, get_current_user
@@ -23,13 +23,18 @@ def list_entries(
     return entries
 
 
-@router.post("/", response_model=EntryOut)
+@router.post("/", response_model=EntryOut, status_code=status.HTTP_201_CREATED)
 def create_entry(
-    data: EntryCreate,
+    entry_in: EntryCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    entry = Entry(**data.model_dump(), user_id=current_user.id)
+    entry = Entry(
+        user_id=current_user.id,
+        name=entry_in.name,
+        value=entry_in.value,
+        date=entry_in.date,
+    )
     db.add(entry)
     db.commit()
     db.refresh(entry)
@@ -42,7 +47,11 @@ def delete_entry(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    entry = db.query(Entry).filter(Entry.id == entry_id, Entry.user_id == current_user.id).first()
+    entry = (
+        db.query(Entry)
+        .filter(Entry.id == entry_id, Entry.user_id == current_user.id)
+        .first()
+    )
     if not entry:
         raise HTTPException(status_code=404, detail="Entrada não encontrada")
     db.delete(entry)

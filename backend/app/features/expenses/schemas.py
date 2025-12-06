@@ -19,3 +19,10 @@ class ExpenseOut(ExpenseBase):
 
     class Config:
         from_attributes = True
+
+class ExpenseCategorySummaryOut(BaseModel):
+    category: str
+    total: float
+
+    class Config:
+        orm_mode = True
